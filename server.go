@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 13:59:08
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-25 19:05:09
+ * @LastEditTime: 2023-04-25 20:12:02
  * @FilePath: /zhang/SimpleChatByGo/server.go
  */
 
@@ -10,6 +10,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -46,7 +47,6 @@ func (t *Server) Broadcast(user *User, msg string) {
 func (t *Server) ListenMessager() {
 	for {
 		msg := <-t.Message
-		fmt.Println(msg)
 		// 将msg发送给全部的在线User
 		t.maplock.Lock()
 		for _, cli := range t.OnlineMap {
@@ -68,9 +68,33 @@ func (t *Server) Handler(conn net.Conn) {
 	t.maplock.Lock()
 	t.OnlineMap[user.Name] = user
 	t.maplock.Unlock()
-	//广播
+
+	//用户上线广播
 	t.Broadcast(user, "已上线")
-	user.ListenMessage()
+
+	// 接受客户端发送的消息，目前通过nc 模拟
+
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := conn.Read(buf)
+			if n == 0 {
+				t.Broadcast(user, "已下线")
+				return
+			}
+
+			if err != nil && err != io.EOF {
+				fmt.Println("Conn Read err:", err)
+				return
+			}
+
+			// 提取用户的消息
+			msg := string(buf[:n-1])
+			//将用户发的消息进行广播
+			t.Broadcast(user, msg)
+		}
+	}()
+
 	//阻塞住，防止user掉线
 
 	select {}
