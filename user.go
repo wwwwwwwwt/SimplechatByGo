@@ -2,12 +2,15 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 14:56:39
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-25 21:01:39
+ * @LastEditTime: 2023-04-25 21:31:46
  * @FilePath: /zhang/SimpleChatByGo/user.go
  */
 package main
 
-import "net"
+import (
+	"net"
+	"strings"
+)
 
 type User struct {
 	Name   string
@@ -70,6 +73,21 @@ func (t *User) Domessage(msg string) {
 		}
 
 		t.server.maplock.Unlock()
+
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		//定义消息格式： rename|wgl
+		newname := strings.Split(msg, "|")[1]
+		if _, ok := t.server.OnlineMap[newname]; ok {
+			t.SendMsg("当前用户名已经被占用\n")
+		} else {
+			t.server.maplock.Lock()
+			delete(t.server.OnlineMap, t.Name)
+			t.server.OnlineMap[newname] = t // 修改在线key-val
+			t.server.maplock.Unlock()
+
+			t.Name = newname
+			t.SendMsg("您已经更新用户名" + newname + "\n")
+		}
 
 	} else {
 		t.server.Broadcast(t, msg)
