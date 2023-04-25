@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 13:59:08
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-25 20:12:02
+ * @LastEditTime: 2023-04-25 20:52:03
  * @FilePath: /zhang/SimpleChatByGo/server.go
  */
 
@@ -64,15 +64,11 @@ func (t *Server) Handler(conn net.Conn) {
 	fmt.Println("conn is accept")
 
 	//新连接用户加入onlinemap
-	user := NewUser(conn)
-	t.maplock.Lock()
-	t.OnlineMap[user.Name] = user
-	t.maplock.Unlock()
-
-	//用户上线广播
-	t.Broadcast(user, "已上线")
+	user := NewUser(conn, t)
 
 	// 接受客户端发送的消息，目前通过nc 模拟
+
+	user.Online()
 
 	go func() {
 		buf := make([]byte, 4096)
@@ -88,10 +84,11 @@ func (t *Server) Handler(conn net.Conn) {
 				return
 			}
 
-			// 提取用户的消息
+			// 提取用户的消息,去除"\n"
 			msg := string(buf[:n-1])
-			//将用户发的消息进行广播
-			t.Broadcast(user, msg)
+			//
+			user.Domessage(msg)
+
 		}
 	}()
 
