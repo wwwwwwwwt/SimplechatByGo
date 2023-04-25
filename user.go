@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 14:56:39
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-25 20:49:09
+ * @LastEditTime: 2023-04-25 21:01:39
  * @FilePath: /zhang/SimpleChatByGo/user.go
  */
 package main
@@ -59,5 +59,24 @@ func (t *User) Offline() {
 }
 
 func (t *User) Domessage(msg string) {
-	t.server.Broadcast(t, msg)
+
+	if msg == "who" {
+		// 查询当前在线用户
+		t.server.maplock.Lock()
+
+		for _, user := range t.server.OnlineMap {
+			onlineMsg := "[" + user.Addr + "]" + user.Name + ":" + "在线...\n"
+			t.SendMsg(onlineMsg)
+		}
+
+		t.server.maplock.Unlock()
+
+	} else {
+		t.server.Broadcast(t, msg)
+	}
+}
+
+// 给当前用户发送消息
+func (t *User) SendMsg(msg string) {
+	t.conn.Write([]byte(msg))
 }
