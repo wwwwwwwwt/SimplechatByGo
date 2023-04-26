@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 14:56:39
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-26 14:29:47
+ * @LastEditTime: 2023-04-26 16:40:43
  * @FilePath: /zhang/SimpleChatByGo/user.go
  */
 package main
@@ -92,12 +92,42 @@ func (t *User) Domessage(msg string) {
 			t.SendMsg("您已经更新用户名" + newname + "\n")
 		}
 
+	} else if len(msg) >= 3 && msg[:3] == "to|" {
+		// 消息格式：to|name|消息内容
+
+		// 1. 获取对方用户名
+		n := len(strings.Split(msg, "|"))
+		if n < 3 {
+			t.SendMsg("消息格式不正确，请输入\"to|name|content\"格式。\n")
+			return
+		}
+		remoteName := strings.Split(msg, "|")[1]
+
+		if remoteName == "" {
+			t.SendMsg("消息格式不正确，请输入\"to|name|content\"格式。\n")
+			return
+		}
+
+		//2.根据用户名获取对方user
+
+		if remoteUser, ok := t.server.OnlineMap[remoteName]; !ok {
+			t.SendMsg("用户不存在或不在线\n")
+		} else {
+			content := strings.Split(msg, "|")[2]
+			if content == "" {
+				t.SendMsg("无内容请重发\n")
+				return
+			} else {
+				remoteUser.SendMsg(t.Name + "对您说：" + content + "\n")
+			}
+		}
+
 	} else {
 		t.server.Broadcast(t, msg)
 	}
 }
 
-// 给当前用户发送消息
+// 给t用户发送消息
 func (t *User) SendMsg(msg string) {
 	t.conn.Write([]byte(msg))
 }
