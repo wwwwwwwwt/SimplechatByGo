@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 13:59:08
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-25 20:52:03
+ * @LastEditTime: 2023-04-26 13:54:47
  * @FilePath: /zhang/SimpleChatByGo/server.go
  */
 
@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -69,13 +70,13 @@ func (t *Server) Handler(conn net.Conn) {
 	// 接受客户端发送的消息，目前通过nc 模拟
 
 	user.Online()
-
+	alive := make(chan bool)
 	go func() {
 		buf := make([]byte, 4096)
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				t.Broadcast(user, "已下线")
+				user.Offline()
 				return
 			}
 
@@ -86,15 +87,30 @@ func (t *Server) Handler(conn net.Conn) {
 
 			// 提取用户的消息,去除"\n"
 			msg := string(buf[:n-1])
+
 			//
 			user.Domessage(msg)
+
+			alive <- true
 
 		}
 	}()
 
 	//阻塞住，防止user掉线
 
-	select {}
+	for {
+		select {
+		case <-alive:
+		case <-time.After(15 * time.Second): // case判断时会将其重置时间
+			//已经超时
+			//将当前的User强制关闭
+			user.SendMsg("长时间不发消息，已被踢出")
+			close(user.C)
+			user.Offline()
+			conn.Close()
+			return
+		}
+	}
 }
 
 // 启动server接口

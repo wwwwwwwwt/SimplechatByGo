@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 14:56:39
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-25 21:31:46
+ * @LastEditTime: 2023-04-26 14:29:47
  * @FilePath: /zhang/SimpleChatByGo/user.go
  */
 package main
@@ -23,10 +23,13 @@ type User struct {
 // 创建监听消息的Handler，基于channel
 
 func (t *User) ListenMessage() {
-
+	//msg := range t.C
 	for {
-		msg := <-t.C
-
+		//msg := <-t.C
+		msg, ok := <-t.C
+		if !ok {
+			return
+		}
 		t.conn.Write([]byte(msg + "\n"))
 	}
 
