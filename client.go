@@ -2,12 +2,13 @@
  * @Author: zzzzztw
  * @Date: 2023-04-26 16:56:56
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-26 17:04:16
+ * @LastEditTime: 2023-04-26 20:47:36
  * @FilePath: /zhang/SimpleChatByGo/client.go
  */
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 )
@@ -19,7 +20,7 @@ type Client struct {
 	conn       net.Conn
 }
 
-func NewClient(Ip string, Port int) *Client {
+func NewClient(Ip string, Port int) (*Client, error) {
 
 	// 创建客户端对象
 
@@ -34,14 +35,25 @@ func NewClient(Ip string, Port int) *Client {
 
 	client.conn = con
 	// 返回对象
-	return client
+	return client, err
 
 }
 
-func main() {
-	client := NewClient("127.0.0.1", 8888)
+var serverIp string
+var serverPort int
 
-	if client == nil {
+func init() {
+	flag.StringVar(&serverIp, "ip", "127.0.0.1", "默认ip地址")
+	flag.IntVar(&serverPort, "port", 8888, "默认端口地址")
+}
+
+func main() {
+
+	flag.Parse()
+
+	client, err := NewClient(serverIp, serverPort)
+
+	if err != nil || client == nil {
 		fmt.Println(">>>>> 连接客户端失败")
 		return
 	}
