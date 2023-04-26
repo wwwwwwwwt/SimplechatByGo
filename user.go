@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 14:56:39
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-26 16:40:43
+ * @LastEditTime: 2023-04-26 18:58:13
  * @FilePath: /zhang/SimpleChatByGo/user.go
  */
 package main
@@ -27,7 +27,7 @@ func (t *User) ListenMessage() {
 	for {
 		//msg := <-t.C
 		msg, ok := <-t.C
-		if !ok {
+		if !ok { // 管道关闭
 			return
 		}
 		t.conn.Write([]byte(msg + "\n"))

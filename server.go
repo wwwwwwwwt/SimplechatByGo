@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 13:59:08
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-26 16:27:14
+ * @LastEditTime: 2023-04-26 20:25:42
  * @FilePath: /zhang/SimpleChatByGo/server.go
  */
 
@@ -101,14 +101,14 @@ func (t *Server) Handler(conn net.Conn) {
 	for {
 		select {
 		case <-alive:
-		case <-time.After(200 * time.Second): // case判断时会将其重置时间
+		case <-time.After(5 * time.Second): // case判断时会将其重置时间
 			//已经超时
 			//将当前的User强制关闭
-			user.SendMsg("长时间不发消息，已被踢出")
+			user.SendMsg("长时间不发消息，已被踢出\n")
 			close(user.C)
 			user.Offline()
 			conn.Close()
-
+			return
 		}
 	}
 }
