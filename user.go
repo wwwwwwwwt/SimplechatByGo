@@ -2,7 +2,7 @@
  * @Author: zzzzztw
  * @Date: 2023-04-25 14:56:39
  * @LastEditors: Do not edit
- * @LastEditTime: 2023-04-26 18:58:13
+ * @LastEditTime: 2023-04-27 17:10:33
  * @FilePath: /zhang/SimpleChatByGo/user.go
  */
 package main
